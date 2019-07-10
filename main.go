@@ -3,10 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -38,33 +40,55 @@ func main() {
 	}
 }
 
+func pingClient(conn net.Conn) {
+	time.Sleep(100 * time.Millisecond)
+
+	_, err := conn.Write([]byte("\n"))
+	if err != nil {
+		removeNodeFromCluster(conn.RemoteAddr().String())
+	}
+
+	pingClient(conn)
+}
+
 func handleConnection(conn net.Conn) {
-	scanner := bufio.NewScanner(conn)
+	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
 
-	for scanner.Scan() {
-		bytes := scanner.Bytes()
-		message := scanner.Text()
-		clientAddr := conn.RemoteAddr()
+	if err != nil {
+		handleScannerErr(err)
+		log.Println(err)
+	}
 
-		log.Println(bytes)
+	if err == io.EOF {
+		handleScannerErr(err)
+		conn.Close()
+		log.Println(err)
+		return
+	}
 
-		checkForClientExistance(clientAddr)
+	bytes := bufferBytes
+	message := strings.TrimSuffix(string(bufferBytes), "\n")
+	clientAddr := conn.RemoteAddr()
 
-		newMessage := strings.ToUpper(message)
+	log.Println(message, bytes)
 
-		if !strings.Contains(newMessage, " :: ") {
-			handleNonColonSpacedPayload(newMessage, conn)
-		} else {
-			handleInstructionsPayload(newMessage, conn)
-		}
+	checkForClientExistance(clientAddr)
 
-		if err := scanner.Err(); err != nil {
-			handleScannerErr(err)
-		}
+	newMessage := strings.ToUpper(message)
+
+	if !strings.Contains(newMessage, " :: ") {
+		log.Println("Non Colon")
+		handleNonColonSpacedPayload(newMessage, conn)
+		defer handleConnection(conn)
+	} else {
+		log.Println("With Colon")
+		handleInstructionsPayload(newMessage, conn)
+		defer handleConnection(conn)
 	}
 }
 
 func handleNonColonSpacedPayload(newMessage string, conn net.Conn) {
+	log.Println(newMessage)
 	switch newMessage {
 	case "EXIT":
 		// remove IP addr from list locally and on all distributed nodes..
@@ -93,6 +117,7 @@ func handleInstructionsPayload(newMessage string, conn net.Conn) {
 
 	switch verb {
 	case "GET":
+		log.Println(cache[key])
 		conn.Write([]byte(cache[key] + "\n"))
 		break
 	case "SET":
@@ -139,14 +164,8 @@ func handleInstructionsPayload(newMessage string, conn net.Conn) {
 }
 
 func handleScannerErr(err error) {
-	switch strings.Contains(err.Error(), "use of closed network connection") {
-	case true:
-		// remove IP addr from list locally and on all distributed nodes..
-		break
-	default:
-		log.Println("scanner.Err():", err)
-		break
-	}
+	// remove IP addr from list locally and on all distributed nodes..
+	log.Println("scanner.Err():", err)
 }
 
 func checkForClientExistance(clientAddr net.Addr) {
