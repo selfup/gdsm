@@ -18,7 +18,7 @@ const (
 
 var (
 	cache = make(map[string]string)
-	nodes = make(map[string]string)
+	nodes = make(map[string]int)
 	mutex = &sync.Mutex{}
 )
 
@@ -45,7 +45,7 @@ func pingClient(conn net.Conn) {
 
 	_, err := conn.Write([]byte("\n"))
 	if err != nil {
-		removeNodeFromCluster(conn.RemoteAddr().String())
+		removeNodeFromCluster(conn)
 	}
 
 	pingClient(conn)
@@ -55,14 +55,12 @@ func handleConnection(conn net.Conn) {
 	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
 
 	if err != nil {
-		handleScannerErr(err)
-		log.Println(err)
+		handleReadConnErr(err, conn)
 	}
 
 	if err == io.EOF {
-		handleScannerErr(err)
+		handleReadConnErr(err, conn)
 		conn.Close()
-		log.Println(err)
 		return
 	}
 
@@ -77,11 +75,9 @@ func handleConnection(conn net.Conn) {
 	newMessage := strings.ToUpper(message)
 
 	if !strings.Contains(newMessage, " :: ") {
-		log.Println("Non Colon")
 		handleNonColonSpacedPayload(newMessage, conn)
 		defer handleConnection(conn)
 	} else {
-		log.Println("With Colon")
 		handleInstructionsPayload(newMessage, conn)
 		defer handleConnection(conn)
 	}
@@ -92,80 +88,71 @@ func handleNonColonSpacedPayload(newMessage string, conn net.Conn) {
 	switch newMessage {
 	case "EXIT":
 		// remove IP addr from list locally and on all distributed nodes..
-		conn.Write([]byte("goodbye.." + "\n"))
+		deleteNode(conn.RemoteAddr().String())
+
+		conn.Write([]byte("200\n"))
 		conn.Close()
 		break
 	case "Q":
-		// remove IP addr from list locally and on all distributed nodes..
-		conn.Write([]byte("goodbye.." + "\n"))
+		conn.Write([]byte("200\n"))
 		conn.Close()
 		break
 	default:
-		conn.Write([]byte("PAYLOAD NOT SUPPORTED\n"))
+		conn.Write([]byte("405\n"))
 		break
 	}
-}
-
-func removeNodeFromCluster(node string) {
-
 }
 
 func handleInstructionsPayload(newMessage string, conn net.Conn) {
 	payload := strings.Split(newMessage, " :: ")
 	verb := payload[0]
-	key := payload[1]
 
 	switch verb {
-	case "GET":
-		log.Println(cache[key])
-		conn.Write([]byte(cache[key] + "\n"))
+	case "REGISTER":
+		conn.Write([]byte("200\n"))
 		break
-	case "SET":
-		value := payload[2]
-
-		mutex.Lock()
-		cache[key] = value
-		mutex.Unlock()
-
+	case "NODES":
+		nodesStr := fmt.Sprintln(nodes)
+		conn.Write([]byte(nodesStr + "\n"))
+		break
+	case "UNREGISTER":
+		value := payload[1]
+		deleteNode(value)
 		conn.Write([]byte("\n"))
 		break
-	case "DEL":
-		value := payload[2]
-
-		mutex.Lock()
-		delete(cache, value)
-		mutex.Unlock()
-
-		break
-	case "GET_NODES":
-		nodesStr := fmt.Sprintln(nodes)
-		conn.Write([]byte(nodesStr))
-		break
-	case "SET_NODES":
-		value := payload[2]
-
-		mutex.Lock()
-		nodes[value] = "1"
-		mutex.Unlock()
-
-		break
-	case "DEL_NODES":
-		value := payload[2]
-
-		mutex.Lock()
-		delete(nodes, value)
-		mutex.Unlock()
-
-		break
 	default:
-		conn.Write([]byte("PAYLOAD NOT SUPPORTED\n"))
+		conn.Write([]byte("UNSUPPORTED INSTRUCTION\n"))
 		break
 	}
 }
 
-func handleScannerErr(err error) {
-	// remove IP addr from list locally and on all distributed nodes..
-	log.Println("scanner.Err():", err)
+func handleReadConnErr(err error, conn net.Conn) {
+	removeNodeFromCluster(conn)
+	log.Println(conn.RemoteAddr(), "ReadConnErr:", err)
+}
+
+func removeNodeFromCluster(conn net.Conn) {
+	value := conn.RemoteAddr().String()
+
+	deleteNode(value)
+
+	for key := range nodes {
+		go func(ipAddr string) {
+
+		}(key)
+	}
+}
+
+func deleteNode(value string) {
+	mutex.Lock()
+	delete(nodes, value)
+	mutex.Unlock()
+}
+
+func setNodes(value string) {
+	mutex.Lock()
+	nodes[value] = 1
+	mutex.Unlock()
 }
 
 func checkForClientExistance(clientAddr net.Addr) {
@@ -180,7 +167,7 @@ func checkForClientExistance(clientAddr net.Addr) {
 
 	if !isAnExistingNode {
 		mutex.Lock()
-		nodes[clientAddrStr] = "1"
+		nodes[clientAddrStr] = 1
 		mutex.Unlock()
 	}
 
