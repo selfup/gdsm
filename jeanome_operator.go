@@ -81,7 +81,9 @@ func (op *Operator) handleConnection(conn net.Conn) {
 
 	log.Println(message, bytes)
 
+	op.mutex.Lock()
 	op.checkForClientExistance(clientAddr)
+	op.mutex.Unlock()
 
 	newMessage := strings.ToUpper(message)
 
@@ -145,8 +147,8 @@ func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) 
 }
 
 func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
-	op.removeConnFromCluster(conn)
 	log.Println(conn.RemoteAddr(), "ReadConnErr:", err)
+	op.removeConnFromCluster(conn)
 }
 
 func (op *Operator) removeNodeFromCluster(node string) {
@@ -166,11 +168,13 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 
 	op.deleteNode(value)
 
+	op.mutex.Lock()
 	for key := range op.Nodes {
 		go func(ipAddr string) {
 
 		}(key)
 	}
+	op.mutex.Unlock()
 }
 
 func (op *Operator) deleteNode(value string) {
@@ -190,15 +194,13 @@ func (op *Operator) checkForClientExistance(clientAddr net.Addr) {
 	clientAddrStr := clientAddr.String()
 
 	for key := range op.Nodes {
-		if key == clientAddrStr {
+		if key != "" && key == clientAddrStr {
 			isAnExistingNode = true
 		}
 	}
 
 	if !isAnExistingNode {
-		op.mutex.Lock()
 		op.Nodes[clientAddrStr] = 1
-		op.mutex.Unlock()
 	}
 
 	log.Println(op.Nodes)
