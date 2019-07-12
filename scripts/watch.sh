@@ -2,4 +2,4 @@
 
 set -e
 
-echo 'main.go' | entr -r go run main.go
+find . -name \*.go -print | entr -r go run server/main.go
