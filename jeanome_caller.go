@@ -27,21 +27,16 @@ func (c *Caller) Dial() {
 	}
 
 	size, err := fmt.Fprintf(conn, "register\n")
-
-	log.Println(size)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	log.Println("IP", conn.RemoteAddr().String(), "BYTES", size, "connected..")
+
 	connbuf := bufio.NewReader(conn)
 
 	for {
-		str, err := connbuf.ReadString('\n')
-
-		if len(str) > 0 {
-			log.Println(str)
-		}
+		_, err := connbuf.ReadString('\n')
 
 		if err != nil {
 			log.Println(err)

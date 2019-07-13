@@ -65,21 +65,20 @@ func (op *Operator) pingClient(conn net.Conn) {
 func (op *Operator) handleConnection(conn net.Conn) {
 	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
 
-	if err != nil {
-		op.handleReadConnErr(err, conn)
-	}
-
 	if err == io.EOF {
 		op.handleReadConnErr(err, conn)
 		conn.Close()
 		return
 	}
 
-	bytes := bufferBytes
+	if err != nil {
+		op.handleReadConnErr(err, conn)
+	}
+
 	message := strings.TrimSuffix(string(bufferBytes), "\n")
 	clientAddr := conn.RemoteAddr()
 
-	log.Println(message, bytes)
+	log.Println("IP", clientAddr.String(), "MESSAGE", message)
 
 	op.mutex.Lock()
 	op.checkForClientExistance(clientAddr)
@@ -147,7 +146,7 @@ func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) 
 }
 
 func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
-	log.Println(conn.RemoteAddr(), "ReadConnErr:", err)
+	log.Println("IP", conn.RemoteAddr(), "ERR", err)
 	op.removeConnFromCluster(conn)
 }
 
