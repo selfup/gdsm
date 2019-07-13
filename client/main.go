@@ -1,9 +1,9 @@
 package main
 
-import "github.com/selfup/jeanome"
+import "github.com/selfup/gdsm/gdsm"
 
 func main() {
-	caller := new(jeanome.Caller)
+	caller := new(gdsm.Caller)
 	caller.NetAddr = "127.0.0.1:8081"
 	caller.Dial()
 }

@@ -1,4 +1,4 @@
-package jeanome
+package gdsm
 
 import (
 	"bufio"
@@ -8,9 +8,10 @@ import (
 	"time"
 )
 
-// Caller is the client struct for jeanome
+// Caller is the client struct for gdsm
 type Caller struct {
 	NetAddr string
+	Server  string
 }
 
 // Dial reaches out to the Operator
@@ -26,7 +27,15 @@ func (c *Caller) Dial() {
 		c.Dial()
 	}
 
-	size, err := fmt.Fprintf(conn, "register\n")
+	var serverAddress string
+
+	if c.Server == "" {
+		serverAddress = ".."
+	} else {
+		serverAddress = c.Server
+	}
+
+	size, err := fmt.Fprintf(conn, "register_server :: "+serverAddress+"\n")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,4 +57,21 @@ func (c *Caller) Dial() {
 			c.Dial()
 		}
 	}
+}
+
+// Ping takes a remote server address and sends over a message from the host server
+func Ping(netAddr string, message string) {
+	conn, err := net.Dial("tcp", netAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	size, err := fmt.Fprintf(conn, message+"\n")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("IP", netAddr, "SIZE", size)
+
+	conn.Close()
 }

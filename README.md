@@ -1,13 +1,7 @@
-# Jeanome
+# GDSM
 
-epdm? maybe..
-
-### Build
-
-`./scripts/build.sh`
+Similar to [EPMD (Erlang Port Mapper Daemon)](http://erlang.org/doc/man/epmd.html) but for Go!
 
 ### Watch
-
-`main.go` for simplicity
 
 `./scripts/watch.sh`
