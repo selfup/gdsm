@@ -16,6 +16,7 @@ type Caller struct {
 
 // Dial reaches out to the Operator
 func (c *Caller) Dial() {
+	log.Println("C.SERVER", c.Server)
 	conn, err := net.Dial("tcp", c.NetAddr)
 	if err != nil {
 		log.Println(err)
@@ -30,7 +31,7 @@ func (c *Caller) Dial() {
 	var serverAddress string
 
 	if c.Server == "" {
-		serverAddress = ".."
+		serverAddress = ""
 	} else {
 		serverAddress = c.Server
 	}

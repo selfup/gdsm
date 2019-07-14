@@ -15,7 +15,8 @@ type Operator struct {
 	mutex   sync.Mutex
 	netType string
 	NetAddr string
-	Nodes   map[string]string
+	Clients map[string]string
+	Servers map[string]bool
 }
 
 // New is the Operator constructor
@@ -24,7 +25,8 @@ func New() *Operator {
 
 	operator.netType = "tcp"
 	operator.NetAddr = "127.0.0.1:19888"
-	operator.Nodes = make(map[string]string)
+	operator.Clients = make(map[string]string)
+	operator.Servers = make(map[string]bool)
 
 	return operator
 }
@@ -51,14 +53,10 @@ func (op *Operator) Boot() {
 func (op *Operator) handleConnection(conn net.Conn) {
 	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
 
-	if err == io.EOF {
+	if err != nil {
 		op.handleReadConnErr(err, conn)
 		conn.Close()
 		return
-	}
-
-	if err != nil {
-		op.handleReadConnErr(err, conn)
 	}
 
 	message := strings.TrimSuffix(string(bufferBytes), "\n")
@@ -66,30 +64,40 @@ func (op *Operator) handleConnection(conn net.Conn) {
 
 	log.Println("IP", clientAddr.String(), "MESSAGE", message)
 
-	op.setNodes(clientAddr.String(), "..")
+	op.setNodes(clientAddr.String(), "")
 
-	newMessage := strings.ToUpper(message)
-
-	if !strings.Contains(newMessage, " :: ") {
-		if op.handleSimplePayload(newMessage, conn) {
+	if !strings.Contains(message, " :: ") {
+		if op.handleSimplePayload(message, conn) {
 			op.handleConnection(conn)
 		} else {
 			return
 		}
 	} else {
-		op.handleInstructionsPayload(newMessage, conn)
+		op.handleInstructionsPayload(message, conn)
 		op.handleConnection(conn)
 	}
 }
 
 func (op *Operator) handleSimplePayload(newMessage string, conn net.Conn) bool {
 	switch newMessage {
-	case "REGISTER":
+	case "register":
 		conn.Write([]byte("200\n"))
 		return true
-	case "NODES":
-		nodesStr := fmt.Sprintln(op.Nodes)
+	case "clients":
+		nodesStr := fmt.Sprintln(op.Clients)
 		conn.Write([]byte(nodesStr + "\n"))
+		return true
+	case "servers":
+		op.mutex.Lock()
+		var servers []string
+		for server, active := range op.Servers {
+			if active {
+				servers = append(servers, server)
+			}
+		}
+		op.mutex.Unlock()
+		serversStr := fmt.Sprintln(servers)
+		conn.Write([]byte(serversStr + "\n"))
 		return true
 	default:
 		conn.Write([]byte("405\n"))
@@ -101,8 +109,34 @@ func (op *Operator) registerServer(conn net.Conn, server string) {
 	client := conn.RemoteAddr().String()
 
 	op.mutex.Lock()
-	op.Nodes[client] = server
+	if !op.Servers[server] && server != "" {
+		op.Servers[server] = true
+	}
 	op.mutex.Unlock()
+
+	var wg sync.WaitGroup
+	wg.Add(len(op.Servers))
+
+	servers := op.getServers()
+
+	op.mutex.Lock()
+
+	// update manager node client map to store servers
+	op.Clients[client] = server
+
+	for key, value := range op.Servers {
+		if value && key != op.NetAddr {
+			go func(serverAddr string) {
+				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
+				wg.Done()
+			}(key)
+		} else {
+			wg.Done()
+		}
+	}
+	op.mutex.Unlock()
+
+	wg.Wait()
 }
 
 func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) {
@@ -110,54 +144,55 @@ func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) 
 	verb := payload[0]
 
 	switch verb {
-	case "REMOVE_CLIENT":
+	case "remove_client":
 		value := payload[1]
-
-		op.removeNodeFromCluster(value)
-
-		conn.Close()
-		conn = nil
-
-		break
-	case "REGISTER_SERVER":
-		value := payload[1]
-
-		op.registerServer(conn, value)
-		log.Println(op.Nodes)
-
+		op.deleteNode(value)
 		conn.Write([]byte("200\n"))
 		break
-	case "UNREGISTER":
+	case "register_server":
 		value := payload[1]
-
+		op.registerServer(conn, value)
+		conn.Write([]byte("200\n"))
+		break
+	case "update_servers":
+		value := payload[1]
+		op.updateServers(value)
+		conn.Write([]byte("200\n"))
+		break
+	case "unregister":
+		value := payload[1]
 		op.removeNodeFromCluster(value)
-
 		conn.Write([]byte("200\n"))
 		break
 	default:
-		conn.Write([]byte("UNSUPPORTED INSTRUCTION\n"))
+		conn.Write([]byte("405\n"))
 		break
 	}
 }
 
 func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
-	log.Println("IP", conn.RemoteAddr(), "ERR", err)
+	if err == io.EOF {
+		log.Println("IP", conn.RemoteAddr(), "disconnected..")
+	} else {
+		log.Println("IP", conn.RemoteAddr(), "ERR", err)
+	}
 	op.removeConnFromCluster(conn)
 }
 
 func (op *Operator) removeNodeFromCluster(node string) {
 	op.deleteNode(node)
+	servers := op.getServers()
 
 	var wg sync.WaitGroup
-
-	wg.Add(len(op.Nodes))
-
+	wg.Add(len(op.Clients))
 	op.mutex.Lock()
-	for key, value := range op.Nodes {
-		if value != ".." && value != op.NetAddr {
+
+	for key, value := range op.Clients {
+		if value != "" && value != op.NetAddr {
 			go func(clientAddr string, serverAddr string) {
 				log.Println("REMOVE_NODE_FROM_CLUSTER CALLING", serverAddr, "REMOVING CLIENT", clientAddr)
-				Ping(serverAddr, "remove_client ::"+clientAddr)
+				Ping(serverAddr, "remove_client :: "+clientAddr)
+				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
 				wg.Done()
 			}(key, value)
 		}
@@ -171,17 +206,18 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 	client := conn.RemoteAddr().String()
 
 	op.deleteNode(client)
+	servers := op.getServers()
 
 	var wg sync.WaitGroup
-
-	wg.Add(len(op.Nodes))
+	wg.Add(len(op.Clients))
 
 	op.mutex.Lock()
-	for key, value := range op.Nodes {
-		if value != ".." && value != op.NetAddr {
+	for key, value := range op.Clients {
+		if value != "" && value != op.NetAddr {
 			go func(clientAddr string, serverAddr string) {
 				log.Println("REMOVE_CONN_FROM_CLUSTER CALLING", serverAddr, "REMOVING CLIENT", client)
 				Ping(serverAddr, "remove_client :: "+client)
+				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
 				wg.Done()
 			}(key, value)
 		}
@@ -193,12 +229,43 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 
 func (op *Operator) deleteNode(value string) {
 	op.mutex.Lock()
-	delete(op.Nodes, value)
+	// when a stored client has an associated server then remove the server
+	if op.Clients[value] != "" {
+		delete(op.Servers, op.Clients[value])
+	}
+
+	delete(op.Clients, value)
 	op.mutex.Unlock()
 }
 
 func (op *Operator) setNodes(key string, value string) {
 	op.mutex.Lock()
-	op.Nodes[key] = value
+	op.Clients[key] = value
+	op.mutex.Unlock()
+}
+
+func (op *Operator) getServers() []string {
+	var servers []string
+
+	for server, active := range op.Servers {
+		if active {
+			servers = append(servers, server)
+		}
+	}
+
+	return servers
+}
+
+func (op *Operator) updateServers(value string) {
+	servers := strings.Split(value, "|")
+
+	op.mutex.Lock()
+	for serv := range op.Servers {
+		op.Servers[serv] = false
+	}
+
+	for _, server := range servers {
+		op.Servers[server] = true
+	}
 	op.mutex.Unlock()
 }
