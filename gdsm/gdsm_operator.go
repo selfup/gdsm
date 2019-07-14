@@ -114,12 +114,11 @@ func (op *Operator) registerServer(conn net.Conn, server string) {
 	}
 	op.mutex.Unlock()
 
-	var wg sync.WaitGroup
-	wg.Add(len(op.Servers))
-
 	servers := op.getServers()
 
 	op.mutex.Lock()
+	var wg sync.WaitGroup
+	wg.Add(len(op.Servers))
 
 	// update manager node client map to store servers
 	op.Clients[client] = server
@@ -134,9 +133,9 @@ func (op *Operator) registerServer(conn net.Conn, server string) {
 			wg.Done()
 		}
 	}
-	op.mutex.Unlock()
 
 	wg.Wait()
+	op.mutex.Unlock()
 }
 
 func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) {
@@ -159,11 +158,6 @@ func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) 
 		op.updateServers(value)
 		conn.Write([]byte("200\n"))
 		break
-	case "unregister":
-		value := payload[1]
-		op.removeNodeFromCluster(value)
-		conn.Write([]byte("200\n"))
-		break
 	default:
 		conn.Write([]byte("405\n"))
 		break
@@ -176,30 +170,16 @@ func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
 	} else {
 		log.Println("IP", conn.RemoteAddr(), "ERR", err)
 	}
-	op.removeConnFromCluster(conn)
+
+	if op.Clients[conn.RemoteAddr().String()] != "" {
+		op.removeClientFromSelf(conn.RemoteAddr().String())
+	} else {
+		op.removeConnFromCluster(conn)
+	}
 }
 
-func (op *Operator) removeNodeFromCluster(node string) {
+func (op *Operator) removeClientFromSelf(node string) {
 	op.deleteNode(node)
-	servers := op.getServers()
-
-	var wg sync.WaitGroup
-	wg.Add(len(op.Clients))
-	op.mutex.Lock()
-
-	for key, value := range op.Clients {
-		if value != "" && value != op.NetAddr {
-			go func(clientAddr string, serverAddr string) {
-				log.Println("REMOVE_NODE_FROM_CLUSTER CALLING", serverAddr, "REMOVING CLIENT", clientAddr)
-				Ping(serverAddr, "remove_client :: "+clientAddr)
-				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
-				wg.Done()
-			}(key, value)
-		}
-	}
-	op.mutex.Unlock()
-
-	wg.Wait()
 }
 
 func (op *Operator) removeConnFromCluster(conn net.Conn) {
@@ -208,10 +188,10 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 	op.deleteNode(client)
 	servers := op.getServers()
 
+	op.mutex.Lock()
 	var wg sync.WaitGroup
 	wg.Add(len(op.Clients))
 
-	op.mutex.Lock()
 	for key, value := range op.Clients {
 		if value != "" && value != op.NetAddr {
 			go func(clientAddr string, serverAddr string) {
@@ -222,9 +202,9 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 			}(key, value)
 		}
 	}
-	op.mutex.Unlock()
 
 	wg.Wait()
+	op.mutex.Unlock()
 }
 
 func (op *Operator) deleteNode(value string) {

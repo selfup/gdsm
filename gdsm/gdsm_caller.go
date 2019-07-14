@@ -19,9 +19,7 @@ func (c *Caller) Dial() {
 	log.Println("C.SERVER", c.Server)
 	conn, err := net.Dial("tcp", c.NetAddr)
 	if err != nil {
-		log.Println(err)
-
-		log.Println("attempting to reconnect..")
+		log.Println(err, "attempting to reconnect..")
 
 		time.Sleep(1 * time.Second)
 
@@ -49,9 +47,7 @@ func (c *Caller) Dial() {
 		_, err := connbuf.ReadString('\n')
 
 		if err != nil {
-			log.Println(err)
-
-			log.Println("attempting to reconnect..")
+			log.Println(err, "attempting to reconnect..")
 
 			time.Sleep(1 * time.Second)
 
@@ -69,10 +65,8 @@ func Ping(netAddr string, message string) {
 
 	size, err := fmt.Fprintf(conn, message+"\n")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(size, err)
 	}
-
-	log.Println("IP", netAddr, "SIZE", size)
 
 	conn.Close()
 }

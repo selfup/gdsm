@@ -40,6 +40,6 @@ func main() {
 }
 
 func recurse() {
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 	recurse()
 }
