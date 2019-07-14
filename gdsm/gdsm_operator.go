@@ -171,15 +171,7 @@ func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
 		log.Println("IP", conn.RemoteAddr(), "ERR", err)
 	}
 
-	if op.Clients[conn.RemoteAddr().String()] != "" {
-		op.removeClientFromSelf(conn.RemoteAddr().String())
-	} else {
-		op.removeConnFromCluster(conn)
-	}
-}
-
-func (op *Operator) removeClientFromSelf(node string) {
-	op.deleteNode(node)
+	op.removeConnFromCluster(conn)
 }
 
 func (op *Operator) removeConnFromCluster(conn net.Conn) {
