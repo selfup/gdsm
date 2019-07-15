@@ -6,9 +6,6 @@ build_container:
     refs:
       - master
 
-  dependencies:
-    - elixir
-
   stage: build
 
   image: docker:stable
