@@ -13,9 +13,6 @@ build_container:
   services:
     - docker:dind
 
-  before_script:
-    - docker info
-
   script:
     - export VERSION=0.0.$CI_PIPELINE_IID
     - export GDSM_BUILD=gdsm:v$CI_PIPELINE_IID
