@@ -50,6 +50,7 @@ func (op *Operator) Boot() {
 	}
 }
 
+// recursive connection handler
 func (op *Operator) handleConnection(conn net.Conn) {
 	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')
 
@@ -89,13 +90,9 @@ func (op *Operator) handleSimplePayload(newMessage string, conn net.Conn) bool {
 		return true
 	case "servers":
 		op.mutex.Lock()
-		var servers []string
-		for server, active := range op.Servers {
-			if active {
-				servers = append(servers, server)
-			}
-		}
+		servers := op.getServers()
 		op.mutex.Unlock()
+
 		serversStr := fmt.Sprintln(servers)
 		conn.Write([]byte(serversStr + "\n"))
 		return true
@@ -112,11 +109,9 @@ func (op *Operator) registerServer(conn net.Conn, server string) {
 	if !op.Servers[server] && server != "" {
 		op.Servers[server] = true
 	}
-	op.mutex.Unlock()
 
 	servers := op.getServers()
 
-	op.mutex.Lock()
 	var wg sync.WaitGroup
 	wg.Add(len(op.Servers))
 
@@ -185,6 +180,8 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 	wg.Add(len(op.Clients))
 
 	for key, value := range op.Clients {
+		log.Println("removeConnFromCluster", key, value, op.Servers, op.Clients)
+
 		if value != "" && value != op.NetAddr {
 			go func(clientAddr string, serverAddr string) {
 				log.Println("REMOVE_CONN_FROM_CLUSTER CALLING", serverAddr, "REMOVING CLIENT", client)
@@ -192,6 +189,8 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
 				wg.Done()
 			}(key, value)
+		} else {
+			wg.Done()
 		}
 	}
 
