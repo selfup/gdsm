@@ -14,7 +14,7 @@ func call(netAddr string) {
 		log.Fatal(err)
 	}
 
-	size, err := fmt.Fprintf(conn, "register\n")
+	size, err := fmt.Fprintf(conn, "ping\n")
 	if err != nil {
 		log.Fatal(err)
 	}

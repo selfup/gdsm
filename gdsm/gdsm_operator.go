@@ -81,7 +81,7 @@ func (op *Operator) handleConnection(conn net.Conn) {
 
 func (op *Operator) handleSimplePayload(newMessage string, conn net.Conn) bool {
 	switch newMessage {
-	case "register":
+	case "ping":
 		conn.Write([]byte("200\n"))
 		return true
 	case "clients":
