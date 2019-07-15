@@ -1,0 +1,29 @@
+stages:
+  - build
+
+build_container:
+  only:
+    refs:
+      - master
+
+  dependencies:
+    - elixir
+
+  stage: build
+
+  image: docker:stable
+
+  services:
+    - docker:dind
+
+  before_script:
+    - docker info
+
+  script:
+    - export VERSION=0.0.$CI_PIPELINE_IID
+    - export GDSM_BUILD=gdsm:v$CI_PIPELINE_IID
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker build -t registry.gitlab.com/selfup/$GDSM_BUILD .
+    - docker push registry.gitlab.com/selfup/$GDSM_BUILD
+    - docker build -t registry.gitlab.com/selfup/gdsm:latest .
+    - docker push registry.gitlab.com/selfup/gdsm:latest
