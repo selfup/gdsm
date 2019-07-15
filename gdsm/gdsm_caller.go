@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -16,10 +17,9 @@ type Caller struct {
 
 // Dial reaches out to the Operator
 func (c *Caller) Dial() {
-	log.Println("C.SERVER", c.Server)
 	conn, err := net.Dial("tcp", c.NetAddr)
 	if err != nil {
-		log.Println(err, "attempting to reconnect..")
+		log.Println(err, "..reconnecting")
 
 		time.Sleep(1 * time.Second)
 
@@ -34,12 +34,12 @@ func (c *Caller) Dial() {
 		serverAddress = c.Server
 	}
 
-	size, err := fmt.Fprintf(conn, "register_server :: "+serverAddress+"\n")
-	if err != nil {
-		log.Fatal(err)
-	}
+	serverPort := strings.Split(serverAddress, ":")[1]
 
-	log.Println("IP", conn.RemoteAddr().String(), "BYTES", size, "connected..")
+	size, err := fmt.Fprintf(conn, "register_server :: "+serverPort+"\n")
+	if err != nil {
+		log.Fatal(size, err)
+	}
 
 	connbuf := bufio.NewReader(conn)
 
@@ -47,12 +47,14 @@ func (c *Caller) Dial() {
 		_, err := connbuf.ReadString('\n')
 
 		if err != nil {
-			log.Println(err, "attempting to reconnect..")
+			log.Println(err, "..reconnecting")
 
 			time.Sleep(1 * time.Second)
 
 			c.Dial()
 		}
+
+		log.Println("dial tcp", conn.RemoteAddr().String()+":", "connect: ..connected")
 	}
 }
 

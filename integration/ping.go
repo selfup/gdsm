@@ -27,6 +27,6 @@ func call(netAddr string) {
 func main() {
 	for {
 		call(os.Args[1])
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 	}
 }

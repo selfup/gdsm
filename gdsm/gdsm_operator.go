@@ -3,7 +3,6 @@ package gdsm
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"strings"
@@ -63,8 +62,6 @@ func (op *Operator) handleConnection(conn net.Conn) {
 	message := strings.TrimSuffix(string(bufferBytes), "\n")
 	clientAddr := conn.RemoteAddr()
 
-	log.Println("IP", clientAddr.String(), "MESSAGE", message)
-
 	op.setNodes(clientAddr.String(), "")
 
 	if !strings.Contains(message, " :: ") {
@@ -102,8 +99,10 @@ func (op *Operator) handleSimplePayload(newMessage string, conn net.Conn) bool {
 	}
 }
 
-func (op *Operator) registerServer(conn net.Conn, server string) {
+func (op *Operator) registerServer(conn net.Conn, serverPort string) {
 	client := conn.RemoteAddr().String()
+	clientIP := strings.Split(client, ":")[0]
+	server := clientIP + ":" + serverPort
 
 	op.mutex.Lock()
 	if !op.Servers[server] && server != "" {
@@ -160,31 +159,22 @@ func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) 
 }
 
 func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
-	if err == io.EOF {
-		log.Println("IP", conn.RemoteAddr(), "disconnected..")
-	} else {
-		log.Println("IP", conn.RemoteAddr(), "ERR", err)
-	}
-
 	op.removeConnFromCluster(conn)
 }
 
 func (op *Operator) removeConnFromCluster(conn net.Conn) {
 	client := conn.RemoteAddr().String()
-
 	op.deleteNode(client)
-	servers := op.getServers()
 
 	op.mutex.Lock()
+	servers := op.getServers()
+
 	var wg sync.WaitGroup
 	wg.Add(len(op.Clients))
 
 	for key, value := range op.Clients {
-		log.Println("removeConnFromCluster", key, value, op.Servers, op.Clients)
-
 		if value != "" && value != op.NetAddr {
 			go func(clientAddr string, serverAddr string) {
-				log.Println("REMOVE_CONN_FROM_CLUSTER CALLING", serverAddr, "REMOVING CLIENT", client)
 				Ping(serverAddr, "remove_client :: "+client)
 				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
 				wg.Done()

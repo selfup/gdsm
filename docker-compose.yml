@@ -1,28 +1,14 @@
 version: '3.1'
 
 services:
-  lb:
-    image: "jwilder/nginx-proxy"
-    ports:
-      - "8080:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
   known:
-    depends_on:
-      - lb
     build:
       context: .
-      dockerfile: Dockerfile
-    environment:
-      - VIRTUAL_HOST=localhost
   unknown:
     depends_on:
-      - known
-    links:
       - known
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       - UPLINK=known:8081
-      - VIRTUAL_HOST=localhost
