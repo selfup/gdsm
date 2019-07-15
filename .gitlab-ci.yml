@@ -24,3 +24,4 @@ build_container:
     - docker push registry.gitlab.com/selfup/$GDSM_BUILD
     - docker build -t registry.gitlab.com/selfup/gdsm:latest .
     - docker push registry.gitlab.com/selfup/gdsm:latest
+    - docker logout
