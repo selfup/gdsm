@@ -117,15 +117,13 @@ func (op *Operator) registerServer(conn net.Conn, serverPort string) {
 	// update manager node client map to store servers
 	op.Clients[client] = server
 
-	for key, value := range op.Servers {
-		if value && key != op.NetAddr {
-			go func(serverAddr string) {
-				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
-				wg.Done()
-			}(key)
-		} else {
+	serversString := strings.Join(servers, "|")
+
+	for _, server := range servers {
+		go func(serverAddr string) {
+			Ping(serverAddr, "update_servers :: "+serversString)
 			wg.Done()
-		}
+		}(server)
 	}
 
 	wg.Wait()
