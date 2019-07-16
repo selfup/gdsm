@@ -2,7 +2,6 @@ package gdsm
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -65,37 +64,14 @@ func (op *Operator) handleConnection(conn net.Conn) {
 	op.setNodes(clientAddr.String(), "")
 
 	if !strings.Contains(message, " :: ") {
-		if op.handleSimplePayload(message, conn) {
+		if op.HandleSimplePayload(message, conn) {
 			op.handleConnection(conn)
 		} else {
 			return
 		}
 	} else {
-		op.handleInstructionsPayload(message, conn)
+		op.HandleInstructionsPayload(message, conn)
 		op.handleConnection(conn)
-	}
-}
-
-func (op *Operator) handleSimplePayload(newMessage string, conn net.Conn) bool {
-	switch newMessage {
-	case "ping":
-		conn.Write([]byte("200\n"))
-		return true
-	case "clients":
-		nodesStr := fmt.Sprintln(op.Clients)
-		conn.Write([]byte(nodesStr + "\n"))
-		return true
-	case "servers":
-		op.mutex.Lock()
-		servers := op.getServers()
-		op.mutex.Unlock()
-
-		serversStr := fmt.Sprintln(servers)
-		conn.Write([]byte(serversStr + "\n"))
-		return true
-	default:
-		conn.Write([]byte("405\n"))
-		return true
 	}
 }
 
@@ -130,32 +106,6 @@ func (op *Operator) registerServer(conn net.Conn, serverPort string) {
 	op.mutex.Unlock()
 }
 
-func (op *Operator) handleInstructionsPayload(newMessage string, conn net.Conn) {
-	payload := strings.Split(newMessage, " :: ")
-	verb := payload[0]
-
-	switch verb {
-	case "remove_client":
-		value := payload[1]
-		op.deleteNode(value)
-		conn.Write([]byte("200\n"))
-		break
-	case "register_server":
-		value := payload[1]
-		op.registerServer(conn, value)
-		conn.Write([]byte("200\n"))
-		break
-	case "update_servers":
-		value := payload[1]
-		op.updateServers(value)
-		conn.Write([]byte("200\n"))
-		break
-	default:
-		conn.Write([]byte("405\n"))
-		break
-	}
-}
-
 func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
 	op.removeConnFromCluster(conn)
 }
@@ -171,7 +121,7 @@ func (op *Operator) removeConnFromCluster(conn net.Conn) {
 	wg.Add(len(op.Clients))
 
 	for key, value := range op.Clients {
-		if value != "" && value != op.NetAddr {
+		if value != "" {
 			go func(clientAddr string, serverAddr string) {
 				Ping(serverAddr, "remove_client :: "+client)
 				Ping(serverAddr, "update_servers :: "+strings.Join(servers, "|"))
