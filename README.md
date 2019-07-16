@@ -40,6 +40,19 @@ For the MANAGER node, just expose an ENV: `MANAGER=true go run main.go`
 
 For the worker nodes: `UPLINK=manager_dns_or_ip_and:port go run main.go`
 
+If running on the same IP you will need to assign separate PORT ENVs for each process:
+
+Example (different shells/tabs/panes/terminals):
+
+```
+MANAGER=true go run main.go
+UPLINK=localhost:8081 PORT=8082 go run main.go
+UPLINK=localhost:8081 PORT=8083 go run main.go
+UPLINK=localhost:8081 PORT=8084 go run main.go
+```
+
+Please reference the quite simple `docker-compose.yml` to understand the order and ENV variables needed.
+
 Example logs of workers and a manager booting and attaching:
 
 ```ocaml
@@ -53,9 +66,29 @@ workers_2  | 2019/07/16 21:38:11 dial tcp 192.168.16.2:8081: connect: ..connecte
 workers_2  | 2019/07/16 21:38:12 192.168.16.3:8081|192.168.16.4:8081
 ```
 
+### Using netcat to ask the nodes for info
+
+`nc ip_or_host port`
+
+Then ask for questions in the shell:
+
+`servers`
+
+OR
+
+`workers`
+
+ALSO
+
+`clients`
+
 ### Registry
 
 registry.gitlab.com
+
+### Docker Image (1.5MB)
+
+registry.gitlab.com/selfup/gdsm:latest
 
 ### Release Repo
 
