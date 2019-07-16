@@ -6,6 +6,8 @@ services:
       context: .
     environment:
       - MANAGER=true
+    ports:
+      - 8081:8081
   workers:
     depends_on:
       - manager

@@ -10,7 +10,7 @@ RUN go build -o /go/bin/$APP
 
 FROM scratch
 
-EXPOSE 8080
+EXPOSE 8081
 
 COPY --from=build /go/bin/gdsm /go/bin/gdsm
 

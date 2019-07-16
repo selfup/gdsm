@@ -1,6 +1,7 @@
 package gdsm
 
 import (
+	"log"
 	"net"
 	"strings"
 )
@@ -24,6 +25,7 @@ func (op *Operator) HandleInstructionsPayload(newMessage string, conn net.Conn) 
 	case "update_servers":
 		value := payload[1]
 		op.updateServers(value)
+		log.Println(value)
 		conn.Write([]byte("200\n"))
 		break
 	default:
