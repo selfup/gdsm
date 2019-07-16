@@ -6,7 +6,7 @@ Similar to [EPMD (Erlang Port Mapper Daemon)](http://erlang.org/doc/man/epmd.htm
 
 ### What does this do?
 
-This is a manager based (single node manager) solution to enable distributed Golang apps can exist.
+This is a manager based (single node manager) solution that can help truly distributed Golang apps to exist.
 
 Any worker node you have can connect to the manager. If any other worker nodes are connected to the manager, they will be updated with the new worker in a pipe delimeted list of IPs.
 
