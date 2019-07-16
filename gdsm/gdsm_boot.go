@@ -10,31 +10,35 @@ import (
 func BootMattDaemon() {
 	port := os.Getenv("PORT")
 	netAddr := os.Getenv("UPLINK")
+	manager := os.Getenv("MANAGER")
 
 	if port == "" {
 		port = "8081"
 	}
 
 	operator := New()
-	operator.NetAddr = "127.0.0.1:" + port
+	operator.NetAddr = "0.0.0.0:" + port
 
 	go func() {
 		operator.Boot()
 	}()
 
-	go func() {
-		caller := new(Caller)
+	// if this node is a manager then do not have the client connect to self
+	if manager == "" {
+		go func() {
+			caller := new(Caller)
 
-		if netAddr != "" {
-			caller.NetAddr = netAddr
-			caller.Server = operator.NetAddr
-		} else {
-			caller.NetAddr = "0.0.0.0:" + port
-			caller.Server = operator.NetAddr
-		}
+			if netAddr != "" {
+				caller.NetAddr = netAddr
+				caller.Server = operator.NetAddr
+			} else {
+				caller.NetAddr = "0.0.0.0:" + port
+				caller.Server = operator.NetAddr
+			}
 
-		caller.Dial()
-	}()
+			caller.Dial()
+		}()
+	}
 
 	recurse()
 }

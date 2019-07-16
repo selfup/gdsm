@@ -1,14 +1,16 @@
 version: '3.1'
 
 services:
-  known:
+  manager:
     build:
       context: .
-  unknown:
+    environment:
+      - MANAGER=true
+  workers:
     depends_on:
-      - known
+      - manager
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      - UPLINK=known:8081
+      - UPLINK=manager:8081
