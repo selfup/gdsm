@@ -6,13 +6,13 @@ Similar to [EPMD (Erlang Port Mapper Daemon)](http://erlang.org/doc/man/epmd.htm
 
 ### What does this do?
 
-This is a manager based (single nde manager) solution to enable distributed Golang apps can exist.
+This is a manager based (single node manager) solution to enable distributed Golang apps can exist.
 
 Any worker node you have can connect to the manager. If any other worker nodes are connected to the manager, they will be updated with the new worker in a pipe delimeted list of IPs.
 
 Example:
 
-```ocaml
+```
 192.168.16.3:8081|192.168.16.4:8081
 ```
 
@@ -55,7 +55,7 @@ Please reference the quite simple `docker-compose.yml` to understand the order a
 
 Example logs of workers and a manager booting and attaching:
 
-```ocaml
+```
 manager_1  | 2019/07/16 21:38:10 GDSM IS UP ON: 0.0.0.0:8081
 workers_1  | 2019/07/16 21:38:12 GDSM IS UP ON: 0.0.0.0:8081
 workers_2  | 2019/07/16 21:38:11 GDSM IS UP ON: 0.0.0.0:8081
