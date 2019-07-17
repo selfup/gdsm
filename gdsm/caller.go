@@ -28,9 +28,7 @@ func (c *Caller) Dial() {
 
 	var serverAddress string
 
-	if c.Server == "" {
-		serverAddress = ""
-	} else {
+	if c.Server != "" {
 		serverAddress = c.Server
 	}
 
