@@ -58,7 +58,14 @@ func (op *Operator) handleConnection(conn net.Conn) {
 		return
 	}
 
-	message := strings.TrimSuffix(string(bufferBytes), "\n")
+	message := string(bufferBytes)
+
+	if strings.Contains(message, "\r\n") {
+		message = strings.TrimSuffix(message, "\r\n")
+	} else {
+		message = strings.TrimSuffix(message, "\n")
+	}
+
 	clientAddr := conn.RemoteAddr()
 
 	op.setNodes(clientAddr.String(), "")
