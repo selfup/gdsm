@@ -189,10 +189,12 @@ func (op *Operator) updateServers(value string) {
 	servers := strings.Split(value, "|")
 
 	op.mutex.Lock()
-	for serv := range op.Servers {
-		op.Servers[serv] = false
+	// set all previous servers to false
+	for previousServer := range op.Servers {
+		op.Servers[previousServer] = false
 	}
 
+	// set current servers from list to true in op.Servers map
 	for _, server := range servers {
 		op.Servers[server] = true
 	}
