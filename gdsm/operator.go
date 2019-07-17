@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"net"
+	"os"
 	"strings"
 	"sync"
 )
@@ -36,7 +37,11 @@ func (op *Operator) Boot() {
 		log.Fatal(err)
 	}
 
-	log.Println("GDSM IS UP ON:", op.NetAddr)
+	if os.Getenv("MANAGER") == "true" {
+		log.Println("gdsm manager has booted..")
+	} else {
+		log.Println("gdsm worker has booted..")
+	}
 
 	for {
 		conn, err := listener.Accept()
@@ -71,11 +76,8 @@ func (op *Operator) handleConnection(conn net.Conn) {
 	op.setNodes(clientAddr.String(), "")
 
 	if !strings.Contains(message, " :: ") {
-		if op.HandleSimplePayload(message, conn) {
-			op.handleConnection(conn)
-		} else {
-			return
-		}
+		op.HandleSimplePayload(message, conn)
+		op.handleConnection(conn)
 	} else {
 		op.HandleInstructionsPayload(message, conn)
 		op.handleConnection(conn)

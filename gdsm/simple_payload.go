@@ -6,15 +6,15 @@ import (
 )
 
 // HandleSimplePayload  handles payloads without params
-func (op *Operator) HandleSimplePayload(newMessage string, conn net.Conn) bool {
+func (op *Operator) HandleSimplePayload(newMessage string, conn net.Conn) {
 	switch newMessage {
 	case "ping":
 		conn.Write([]byte("200\n"))
-		return true
+		break
 	case "clients":
 		nodesStr := fmt.Sprintln(op.Clients)
 		conn.Write([]byte(nodesStr + "\n"))
-		return true
+		break
 	case "servers":
 		op.mutex.Lock()
 		servers := op.getServers()
@@ -22,7 +22,7 @@ func (op *Operator) HandleSimplePayload(newMessage string, conn net.Conn) bool {
 
 		serversStr := fmt.Sprintln(servers)
 		conn.Write([]byte(serversStr + "\n"))
-		return true
+		break
 	case "workers":
 		op.mutex.Lock()
 		workers := op.getServers()
@@ -30,9 +30,9 @@ func (op *Operator) HandleSimplePayload(newMessage string, conn net.Conn) bool {
 
 		workersStr := fmt.Sprintln(workers)
 		conn.Write([]byte(workersStr + "\n"))
-		return true
+		break
 	default:
 		conn.Write([]byte("405\n"))
-		return true
+		break
 	}
 }
