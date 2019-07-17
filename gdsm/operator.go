@@ -22,7 +22,7 @@ func New() *Operator {
 	operator := new(Operator)
 
 	operator.netType = "tcp"
-	operator.NetAddr = "127.0.0.1:19888"
+	operator.NetAddr = "0.0.0.0:8081"
 	operator.Clients = make(map[string]string)
 	operator.Servers = make(map[string]bool)
 
