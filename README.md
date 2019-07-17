@@ -66,21 +66,17 @@ workers_2  | 2019/07/16 21:38:11 dial tcp 192.168.16.2:8081: connect: ..connecte
 workers_2  | 2019/07/16 21:38:12 192.168.16.3:8081|192.168.16.4:8081
 ```
 
-### Using netcat to ask the nodes for info
+### Using client/main.go to query the manager
 
-`nc ip_or_host port`
+`go run client/main.go`
 
 Then ask for questions in the shell:
 
-`servers`
+![image](https://user-images.githubusercontent.com/9837366/61343720-6e9b6200-a814-11e9-9461-efba248332a8.png)
 
-OR
+You may also set ENV vars for the IP and PORT as so:
 
-`workers`
-
-ALSO
-
-`clients`
+`IP=0.0.0.0 PORT=8081 go run client/main.go`
 
 ### Registry
 

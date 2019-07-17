@@ -9,7 +9,20 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "127.0.0.1:8081")
+	ip := os.Getenv("IP")
+	port := os.Getenv("PORT")
+
+	if ip == "" {
+		ip = "127.0.0.1"
+	}
+
+	if port == "" {
+		port = "8081"
+	}
+
+	addr := ip + ":" + port
+
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		log.Fatal(err)
 	}
