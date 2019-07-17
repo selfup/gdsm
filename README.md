@@ -78,6 +78,8 @@ You may also set ENV vars for the IP and PORT as so:
 
 `IP=0.0.0.0 PORT=8081 go run client/main.go`
 
+You can also query the workers, but typically the manager should be the only node exposed.
+
 ### Registry
 
 registry.gitlab.com
