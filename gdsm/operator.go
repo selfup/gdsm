@@ -160,6 +160,17 @@ func (op *Operator) setNodes(key string, value string) {
 	op.mutex.Unlock()
 }
 
+// Nodes returns a list of gdsm workers
+func (op *Operator) Nodes() []string {
+	var servers []string
+
+	op.mutex.Lock()
+	servers = op.getServers()
+	op.mutex.Unlock()
+
+	return servers
+}
+
 func (op *Operator) getServers() []string {
 	var servers []string
 

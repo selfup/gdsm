@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	gdsm.BootMattDaemon()
+	operator := gdsm.BuildGDSM()
+	gdsm.BootMattDaemon(operator)
 }
