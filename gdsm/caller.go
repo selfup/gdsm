@@ -36,7 +36,7 @@ func (c *Caller) Dial() {
 
 	size, err := fmt.Fprintf(conn, "register_server :: "+serverPort+"\n")
 	if err != nil {
-		log.Fatal(size, err)
+		log.Fatal(size, "client register server error", err)
 	}
 
 	connbuf := bufio.NewReader(conn)
@@ -60,7 +60,8 @@ func (c *Caller) Dial() {
 func Ping(netAddr string, message string) {
 	conn, err := net.Dial("tcp", netAddr)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("addr:", netAddr, "not available..", err)
+		return
 	}
 
 	size, err := fmt.Fprintf(conn, message+"\n")

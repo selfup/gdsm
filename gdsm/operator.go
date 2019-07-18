@@ -34,7 +34,7 @@ func New() *Operator {
 func (op *Operator) Boot() {
 	listener, err := net.Listen(op.netType, op.NetAddr)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("tcp server listener error:", err)
 	}
 
 	if os.Getenv("MANAGER") == "true" {
@@ -46,7 +46,7 @@ func (op *Operator) Boot() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("tcp server accept error", err)
 		}
 
 		go op.handleConnection(conn)
@@ -121,6 +121,7 @@ func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
 
 func (op *Operator) removeConnFromCluster(conn net.Conn) {
 	client := conn.RemoteAddr().String()
+
 	op.deleteNode(client)
 
 	op.mutex.Lock()
