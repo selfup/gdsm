@@ -37,7 +37,7 @@ import (
 )
 
 func main() {
-	daemon := gdsm.BuildDaemon()
+  daemon := gdsm.BuildDaemon()
   go gdsm.BootDaemon(daemon)
 
   log.Println("not blocked")
@@ -54,7 +54,7 @@ import (
 )
 
 func main() {
-	daemon := gdsm.BuildDaemon()
+  daemon := gdsm.BuildDaemon()
   gdsm.BootDaemon(daemon)
 }
 ```
