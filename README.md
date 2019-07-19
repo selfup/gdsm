@@ -33,7 +33,7 @@ package main
 
 import (
   "log"
-	"github.com/selfup/gdsm/gdsm"
+  "github.com/selfup/gdsm/gdsm"
 )
 
 func main() {
@@ -50,7 +50,7 @@ _Blocking_
 package main
 
 import (
-	"github.com/selfup/gdsm/gdsm"
+  "github.com/selfup/gdsm/gdsm"
 )
 
 func main() {
