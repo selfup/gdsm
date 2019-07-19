@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// BuildGDSM builds enough of the GDSM Operator so that you can query data internally
-func BuildGDSM() *Operator {
+// BuildDaemon builds enough of the GDSM Operator so that you can query data internally
+func BuildDaemon() *Operator {
 	port := os.Getenv("PORT")
 
 	if port == "" {
@@ -19,9 +19,9 @@ func BuildGDSM() *Operator {
 	return operator
 }
 
-// BootMattDaemon boots both the server and the client
-// Meant to be called: go BootMattDaemon()
-func BootMattDaemon(operator *Operator) {
+// BootDaemon boots both the server and the client
+// Meant to be called: go BootDaemon()
+func BootDaemon(operator *Operator) {
 	netAddr := os.Getenv("UPLINK")
 	manager := os.Getenv("MANAGER")
 	port := os.Getenv("PORT")
