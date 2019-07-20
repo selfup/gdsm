@@ -2,7 +2,7 @@
 
 set -e
 
-ORIGIN=grep git@github.com:selfup/gdsm
+ORIGIN=git@github.com:selfup/gdsm
 
 git remote -v | grep $ORIGIN
 
