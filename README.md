@@ -4,7 +4,7 @@ _aka MATT (Map Active TCP Tunnels) Daemon_
 
 Similar to [EPMD (Erlang Port Mapper Daemon)](http://erlang.org/doc/man/epmd.html) but for Go!
 
-![Screenshot from 2019-07-20 09-38-55](https://user-images.githubusercontent.com/9837366/61579995-4ccf0300-aad2-11e9-8bc3-7c32b36af8b6.png)
+![Screenshot from 2019-07-20 09-45-55](https://user-images.githubusercontent.com/9837366/61580072-38d7d100-aad3-11e9-93a7-04e5ec4c7e27.png)
 
 ### What does this do?
 
