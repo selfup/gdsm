@@ -94,7 +94,7 @@ workers_2  | 2019/07/19 19:24:26 dial tcp 192.168.16.2:8081: connect: ..connecte
 
 Then ask for questions in the shell:
 
-![image](https://user-images.githubusercontent.com/9837366/61343720-6e9b6200-a814-11e9-9461-efba248332a8.png)
+![gdsm_client](https://user-images.githubusercontent.com/9837366/61580373-fd3f0600-aad6-11e9-86d2-6e1826ed87d9.png)
 
 You may also set ENV vars for the IP and PORT as so:
 
