@@ -107,7 +107,17 @@ workers_2  | 2019/07/19 19:24:26 dial tcp 192.168.16.2:8081: connect: ..connecte
 
 Then ask for questions in the shell:
 
-![gdsm_client](https://user-images.githubusercontent.com/9837366/61580373-fd3f0600-aad6-11e9-86d2-6e1826ed87d9.png)
+```
+$ go run client/main.go
+workers
+172.23.0.3:8081|172.23.0.6:8081|172.23.0.7:8081|172.23.0.9:8081
+servers
+172.23.0.3|172.23.0.6|172.23.0.7|172.23.0.9
+nodes
+172.23.0.7|172.23.0.9|172.23.0.3|172.23.0.6
+clients
+172.23.0.3:52824|172.23.0.1:34626|172.23.0.6:35436|172.23.0.7:54964|172.23.0.9:51984
+```
 
 You may also set ENV vars for the IP and PORT as so:
 

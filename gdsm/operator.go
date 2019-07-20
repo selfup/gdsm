@@ -79,6 +79,19 @@ func (op *Operator) Nodes() []string {
 	return serverIPs
 }
 
+// ConnectedClients provides a list of <ip:port> for all connected clients
+func (op *Operator) ConnectedClients() []string {
+	var clients []string
+
+	op.mutex.Lock()
+	for client := range op.Clients {
+		clients = append(clients, client)
+	}
+	op.mutex.Unlock()
+
+	return clients
+}
+
 // recursive connection handler
 func (op *Operator) handleConnection(conn net.Conn) {
 	bufferBytes, err := bufio.NewReader(conn).ReadBytes('\n')

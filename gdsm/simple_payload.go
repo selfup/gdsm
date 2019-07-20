@@ -1,8 +1,8 @@
 package gdsm
 
 import (
-	"fmt"
 	"net"
+	"strings"
 )
 
 // HandleSimplePayload  handles payloads without params
@@ -12,23 +12,20 @@ func (op *Operator) HandleSimplePayload(newMessage string, conn net.Conn) {
 		conn.Write([]byte("200\n"))
 		break
 	case "clients":
-		nodesStr := fmt.Sprintln(op.Clients)
-		conn.Write([]byte(nodesStr + "\n"))
+		clients := op.ConnectedClients()
+		clientsStr := strings.Join(clients, "|")
+		conn.Write([]byte(clientsStr + "\n"))
 		break
-	case "servers":
-		op.mutex.Lock()
-		servers := op.getServers()
-		op.mutex.Unlock()
+	case "nodes", "servers":
+		servers := op.Nodes()
+		serversStr := strings.Join(servers, "|")
 
-		serversStr := fmt.Sprintln(servers)
 		conn.Write([]byte(serversStr + "\n"))
 		break
 	case "workers":
-		op.mutex.Lock()
-		workers := op.getServers()
-		op.mutex.Unlock()
+		workers := op.Workers()
+		workersStr := strings.Join(workers, "|")
 
-		workersStr := fmt.Sprintln(workers)
 		conn.Write([]byte(workersStr + "\n"))
 		break
 	default:
