@@ -1,3 +1,6 @@
+[![GitLabCI](https://gitlab.com/selfup/gdsm/badges/master/pipeline.svg)](https://gitlab.com/selfup/gdsm/pipelines)
+[![GoDoc](https://godoc.org/github.com/selfup/gdsm/gdsm?status.svg)](https://godoc.org/github.com/selfup/gdsm/gdsm)
+
 # GDSM (MATTD)
 
 _aka MATT (Map Active TCP Tunnels) Daemon_
