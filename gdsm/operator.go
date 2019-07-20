@@ -30,7 +30,7 @@ func New() *Operator {
 	return operator
 }
 
-// Boot starts the gdsm TCP Server
+// Boot starts the gdsm TCP Server.
 func (op *Operator) Boot() {
 	listener, err := net.Listen(op.netType, op.NetAddr)
 	if err != nil {
@@ -51,6 +51,32 @@ func (op *Operator) Boot() {
 
 		go op.handleConnection(conn)
 	}
+}
+
+// Workers returns a list of gdsm workers and it includes each worker <ip:port>.
+func (op *Operator) Workers() []string {
+	var servers []string
+
+	op.mutex.Lock()
+	servers = op.getServers()
+	op.mutex.Unlock()
+
+	return servers
+}
+
+// Nodes returns a list of the IP of each node the workers are running on.
+// This enables you to make calls to the running application on that node (add your own port, etc..).
+func (op *Operator) Nodes() []string {
+	var serverIPs []string
+
+	op.mutex.Lock()
+	for _, server := range op.getServers() {
+		serverIP := strings.Split(server, ":")[0]
+		serverIPs = append(serverIPs, serverIP)
+	}
+	op.mutex.Unlock()
+
+	return serverIPs
 }
 
 // recursive connection handler
@@ -161,17 +187,6 @@ func (op *Operator) setNodes(key string, value string) {
 	op.mutex.Lock()
 	op.Clients[key] = value
 	op.mutex.Unlock()
-}
-
-// Nodes returns a list of gdsm workers
-func (op *Operator) Nodes() []string {
-	var servers []string
-
-	op.mutex.Lock()
-	servers = op.getServers()
-	op.mutex.Unlock()
-
-	return servers
 }
 
 func (op *Operator) getServers() []string {

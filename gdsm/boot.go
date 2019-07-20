@@ -2,10 +2,9 @@ package gdsm
 
 import (
 	"os"
-	"time"
 )
 
-// BuildDaemon builds enough of the GDSM Operator so that you can query data internally
+// BuildDaemon builds enough of the GDSM Operator so that you can query data internally.
 func BuildDaemon() *Operator {
 	port := os.Getenv("PORT")
 
@@ -19,8 +18,10 @@ func BuildDaemon() *Operator {
 	return operator
 }
 
-// BootDaemon boots both the server and the client
-// Meant to be called: go BootDaemon()
+// BootDaemon boots both the server and the client.
+// Meant to be called `go gdsm.BootDaemon(daemon)` for non blocking and  `gdsm.BootDaemon(daemon)` for blocking.
+// If the MANAGER env is set to "true" then the node will not boot a client, it will just be a server for all the workers to attach to.
+// If the MANAGER env is not set, the node will boot up a server as well as a client that attaches to the UPLINK server.
 func BootDaemon(operator *Operator) {
 	netAddr := os.Getenv("UPLINK")
 	manager := os.Getenv("MANAGER")
@@ -51,10 +52,10 @@ func BootDaemon(operator *Operator) {
 		}()
 	}
 
-	recurse()
+	block()
 }
 
-func recurse() {
-	time.Sleep(1 * time.Second)
-	recurse()
+// blocks forever until panic
+func block() {
+	select {}
 }
