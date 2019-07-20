@@ -38,12 +38,22 @@ package main
 
 import (
   "log"
+  "time"
+
   "github.com/selfup/gdsm/gdsm"
 )
 
 func main() {
   daemon := gdsm.BuildDaemon()
   go gdsm.BootDaemon(daemon)
+
+  time.Sleep(2 * time.Second)
+
+  nodes := daemon.Nodes()
+  log.Println("nodes", nodes)
+
+  workers := daemon.Workers()
+  log.Println("workers", workers)
 
   log.Println("not blocked")
 }
