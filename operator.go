@@ -115,10 +115,10 @@ func (op *Operator) handleConnection(conn net.Conn) {
 	op.setNodes(clientAddr.String(), "")
 
 	if !strings.Contains(message, " :: ") {
-		op.HandleSimplePayload(message, conn)
+		op.Read(message, conn)
 		op.handleConnection(conn)
 	} else {
-		op.HandleInstructionsPayload(message, conn)
+		op.Update(message, conn)
 		op.handleConnection(conn)
 	}
 }

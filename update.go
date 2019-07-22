@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// HandleInstructionsPayload handles complex actions that involve params
-func (op *Operator) HandleInstructionsPayload(newMessage string, conn net.Conn) {
+// Update handles complex actions that involve params
+func (op *Operator) Update(newMessage string, conn net.Conn) {
 	payload := strings.Split(newMessage, " :: ")
 	verb := payload[0]
 

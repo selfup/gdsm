@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// HandleSimplePayload  handles payloads without params
-func (op *Operator) HandleSimplePayload(newMessage string, conn net.Conn) {
+// Read  handles payloads without params
+func (op *Operator) Read(newMessage string, conn net.Conn) {
 	switch newMessage {
 	case "ping":
 		conn.Write([]byte("200\n"))
