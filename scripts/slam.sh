@@ -7,4 +7,4 @@ then
   SERVER=$1
 fi
 
-go run integration/ping.go $SERVER
+go run cmd/slam/main.go $SERVER

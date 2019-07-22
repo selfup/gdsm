@@ -1,5 +1,5 @@
 [![GitLabCI](https://gitlab.com/selfup/gdsm/badges/master/pipeline.svg)](https://gitlab.com/selfup/gdsm/pipelines)
-[![GoDoc](https://godoc.org/github.com/selfup/gdsm/gdsm?status.svg)](https://godoc.org/github.com/selfup/gdsm/gdsm)
+[![GoDoc](https://godoc.org/github.com/selfup/gdsm?status.svg)](https://godoc.org/github.com/selfup/gdsm)
 
 # GDSM (MATTD)
 
@@ -40,7 +40,7 @@ import (
   "log"
   "time"
 
-  "github.com/selfup/gdsm/gdsm"
+  "github.com/selfup/gdsm"
 )
 
 func main() {
@@ -65,7 +65,7 @@ _Blocking_
 package main
 
 import (
-  "github.com/selfup/gdsm/gdsm"
+  "github.com/selfup/gdsm"
 )
 
 func main() {
@@ -74,19 +74,19 @@ func main() {
 }
 ```
 
-For the MANAGER node, just expose an ENV: `MANAGER=true go run main.go`
+For the MANAGER node, just expose an ENV: `MANAGER=true go run cmd/daemon/main.go`
 
-For the worker nodes: `UPLINK=manager_dns_or_ip_and:port go run main.go`
+For the worker nodes: `UPLINK=manager_dns_or_ip_and:port go run cmd/daemon/main.go`
 
 If running on the same IP you will need to assign separate PORT ENVs for each process:
 
 Example (different shells/tabs/panes/terminals):
 
 ```
-MANAGER=true go run main.go
-UPLINK=localhost:8081 PORT=8082 go run main.go
-UPLINK=localhost:8081 PORT=8083 go run main.go
-UPLINK=localhost:8081 PORT=8084 go run main.go
+MANAGER=true go run cmd/daemon/main.go
+UPLINK=localhost:8081 PORT=8082 go run cmd/daemon/main.go
+UPLINK=localhost:8081 PORT=8083 go run cmd/daemon/main.go
+UPLINK=localhost:8081 PORT=8084 go run cmd/daemon/main.go
 ```
 
 Please reference the quite simple `docker-compose.yml` to understand the order and ENV variables needed.

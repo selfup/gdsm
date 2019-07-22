@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/selfup/gdsm/gdsm"
+	"github.com/selfup/gdsm"
 )
 
 func main() {

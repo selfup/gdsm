@@ -6,7 +6,7 @@ COPY . $GOPATH/src/github.com/selfup/$APP
 
 WORKDIR $GOPATH/src/github.com/selfup/$APP
 
-RUN go build -o /go/bin/$APP
+RUN go build cmd/daemon/main.go && mv main /go/bin/$APP
 
 FROM scratch
 
