@@ -29,6 +29,8 @@ If the manager goes down, the workers will keep the same list of workers until t
 
 Semaphores are heavily utilized. No race conditions should occur.
 
+Can be used as a health indicator for a fleet of nodes in a cluster.
+
 ### How to use?
 
 _Non blocking_
