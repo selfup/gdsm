@@ -5,8 +5,30 @@ import (
 	"log"
 	"net"
 	"os"
-	"time"
+	"sync"
 )
+
+func main() {
+	pingMaxFiles()
+}
+
+func pingMaxFiles() {
+	var wg sync.WaitGroup
+
+	arg := os.Args[1]
+	requests := 1024
+
+	wg.Add(requests)
+
+	for i := 0; i < requests; i++ {
+		go func() {
+			call(arg)
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+}
 
 func call(netAddr string) {
 	conn, err := net.Dial("tcp", netAddr)
@@ -14,19 +36,10 @@ func call(netAddr string) {
 		log.Fatal(err)
 	}
 
-	size, err := fmt.Fprintf(conn, "ping\n")
-	if err != nil {
-		log.Fatal(err)
+	_, ferr := fmt.Fprintf(conn, "ping\n")
+	if ferr != nil {
+		log.Fatal(ferr)
 	}
-
-	log.Println(size)
 
 	conn.Close()
-}
-
-func main() {
-	for {
-		call(os.Args[1])
-		time.Sleep(5 * time.Millisecond)
-	}
 }

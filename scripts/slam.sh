@@ -7,4 +7,4 @@ then
   SERVER=$1
 fi
 
-go run cmd/slam/main.go $SERVER
+time go run cmd/slam/main.go $SERVER
