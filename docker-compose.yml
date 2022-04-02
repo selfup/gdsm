@@ -13,6 +13,5 @@ services:
       - manager
     build:
       context: .
-      dockerfile: Dockerfile
     environment:
       - UPLINK=manager:8081

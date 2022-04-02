@@ -15,19 +15,15 @@ func (op *Operator) Update(newMessage string, conn net.Conn) {
 		value := payload[1]
 		op.deleteNode(value)
 		conn.Write([]byte("200\n"))
-		break
 	case "register_server":
 		value := payload[1]
 		op.registerServer(conn, value)
 		conn.Write([]byte("200\n"))
-		break
 	case "update_servers":
 		value := payload[1]
 		op.updateServers(value)
 		conn.Write([]byte("200\n"))
-		break
 	default:
 		conn.Write([]byte("405\n"))
-		break
 	}
 }
