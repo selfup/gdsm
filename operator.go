@@ -154,7 +154,7 @@ func (op *Operator) registerServer(conn net.Conn, serverPort string) {
 	op.mutex.Unlock()
 }
 
-func (op *Operator) handleReadConnErr(err error, conn net.Conn) {
+func (op *Operator) handleReadConnErr(_ error, conn net.Conn) {
 	op.removeConnFromCluster(conn)
 }
 

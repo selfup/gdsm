@@ -105,12 +105,12 @@ workers_2  | 2019/07/19 19:24:26 dial tcp 192.168.16.2:8081: connect: ..connecte
 
 ### Using client/main.go to query the manager
 
-`go run client/main.go`
+`go run cmd/client/main.go`
 
 Then ask for questions in the shell:
 
 ```
-$ go run client/main.go
+$ go run cmd/client/main.go
 workers
 172.23.0.3:8081|172.23.0.6:8081|172.23.0.7:8081|172.23.0.9:8081
 servers
@@ -123,7 +123,7 @@ clients
 
 You may also set ENV vars for the IP and PORT as so:
 
-`IP=0.0.0.0 PORT=8081 go run client/main.go`
+`IP=0.0.0.0 PORT=8081 go run cmd/client/main.go`
 
 You can also query the workers, but typically the manager should be the only node exposed.
 

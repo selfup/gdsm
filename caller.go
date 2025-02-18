@@ -34,7 +34,7 @@ func (c *Caller) Dial() {
 
 	serverPort := strings.Split(serverAddress, ":")[1]
 
-	size, err := fmt.Fprintf(conn, "register_server :: "+serverPort+"\n")
+	size, err := fmt.Fprint(conn, "register_server :: "+serverPort+"\n")
 	if err != nil {
 		log.Fatal(size, "client register server error", err)
 	}
@@ -64,7 +64,7 @@ func Ping(netAddr string, message string) {
 		return
 	}
 
-	size, err := fmt.Fprintf(conn, message+"\n")
+	size, err := fmt.Fprint(conn, message+"\n")
 	if err != nil {
 		log.Fatal(size, err)
 	}
